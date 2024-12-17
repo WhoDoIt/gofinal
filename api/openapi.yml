@@ -4,7 +4,7 @@ info:
   description: API для системы бронирования отелей, включающая сервисы бронирования, отелей, уведомлений и оплаты.
   version: 1.0.0
 servers:
-  - url: https://api.hotelbooking.com/v1
+  - url: localhost:/v1
     description: Основной API сервер
 
 paths:
@@ -25,6 +25,9 @@ paths:
                 hotel_id:
                   type: string
                   description: Идентификатор отеля, в котором будет сделано бронирование.
+                room_id:
+                  type: string
+                  description: Идентификатор комнаты, в которой будет сделано бронирование.
                 check_in_date:
                   type: string
                   format: date
@@ -39,6 +42,7 @@ paths:
               required:
                 - client_id
                 - hotel_id
+                - room_id
                 - check_in_date
                 - check_out_date
       responses:
@@ -54,6 +58,57 @@ paths:
                     description: Идентификатор созданного бронирования.
         '400':
           description: Неверные данные для бронирования.
+        '403':
+          description: Бронирование недосутпно.
+        '500':
+          description: Внутренняя ошибка сервера.
+  
+  /bookings/{booking_id}:
+    get:
+      summary: Получить информацию о брони по booking_id
+      responses:
+        '200':
+          description: Информация о броне успешна получена.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking" 
+        '400':
+          description: Неверный booking_id
+        '500':
+          description: Внутренняя ошибка сервера.
+  
+  /bookings/hotel/{hotel_id}:
+    get:
+      summary: Получить информацию о всех бронях в отеле
+      responses:
+        '200':
+          description: Информация о бронях успешна получена.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        '400':
+          description: Неверный hotel_id
+        '500':
+          description: Внутренняя ошибка сервера.
+
+  /bookings/client/{client_id}:
+    get:
+      summary: Получить информацию о всех бронях клиента
+      responses:
+        '200':
+          description: Информация о бронях успешна получена.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        '400':
+          description: Неверный client_id
         '500':
           description: Внутренняя ошибка сервера.
 
@@ -69,29 +124,187 @@ paths:
               schema:
                 type: array
                 items:
+                  $ref: "#/components/schemas/Hotel"
+        '500':
+          description: Внутренняя ошибка сервера.
+    post:
+      summary: Создание нового отеля
+      description: Этот эндпоинт используется для создания нового отеля в системе.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner_id:
+                  type: string
+                  description: Идентификатор владельца, который оформляет отель.
+                name:
+                  type: string
+                  description: Имя отеля.
+                location:
+                  type: string
+                  description: Локация отеля.
+                rooms:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      price:
+                        type: number
+                        format: float
+              required:
+                - owner_id
+                - name
+                - location
+                - rooms
+      responses:
+        '201':
+          description: Отель успешно создан.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hotel_id:
+                    type: string
+                    description: Идентификатор созданного отеля.
+        '400':
+          description: Неверные данные.
+        '500':
+          description: Внутренняя ошибка сервера.
+
+  /hotels/{hotel_id}:
+    get:
+      summary: "Получить информацию об отеле по hotel_id"
+      responses:
+        '200':
+          description: Информация об отеле успешна получена.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Hotel" 
+        '400':
+          description: Неверный hotel_id
+        '500':
+          description: Внутренняя ошибка сервера.
+  
+  /hotels/owner/{owner_id}:
+    get:
+      summary: "Получить информацию о всех отелях у владельца по owner_id"
+      responses:
+        '200':
+          description: Информация об отелях успешна получена.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Hotel" 
+        '400':
+          description: Неверный owner_id
+        '500':
+          description: Внутренняя ошибка сервера.
+    
+  /hotel/room:
+    delete:
+      summary: Удалить комнату из отеля
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner_id:
+                  type: string
+                hotel_id:
+                  type: string
+                room_id:
+                  type: string
+              required:
+                - owner_id
+                - hotel_id
+                - room_id
+      responses:
+        '201':
+          description: Комната успешно удалена
+        '400':
+          description: Неверные данные.
+        '403':
+          description: Удаление невозможно.
+        '500':
+          description: Внутренняя ошибка сервера.
+    put:
+      summary: Обновить информацию об комнате
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner_id:
+                  type: string
+                hotel_id:
+                  type: string
+                room_id:
+                  type: string
+                room_description:
                   type: object
                   properties:
-                    hotel_id:
+                    type:
                       type: string
-                      description: Идентификатор отеля.
-                    name:
+                    price:
+                      type: number
+                      format: float
+              required:
+                - owner_id
+                - hotel_id
+                - room_id
+                - room_description
+      responses:
+        '200':
+          description: Комната успешно обновлена
+        '400':
+          description: Неверные данные.
+        '403':
+          description: Обновление невозможно.
+        '500':
+          description: Внутренняя ошибка сервера.
+    post:
+      summary: Создать новую комнату
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                owner_id:
+                  type: string
+                hotel_id:
+                  type: string
+                room_description:
+                  type: object
+                  properties:
+                    type:
                       type: string
-                      description: Название отеля.
-                    location:
-                      type: string
-                      description: Местоположение отеля.
-                    rooms:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          room_id:
-                            type: string
-                          type:
-                            type: string
-                          price:
-                            type: number
-                            format: float
+                    price:
+                      type: number
+                      format: float
+              required:
+                - owner_id
+                - hotel_id
+                - room_description
+      responses:
+        '201':
+          description: Комната успешно создана
+        '400':
+          description: Неверные данные.
         '500':
           description: Внутренняя ошибка сервера.
 
@@ -212,6 +425,8 @@ components:
     Hotel:
       type: object
       properties:
+        owner_id:
+          type: string
         hotel_id:
           type: string
         name:
@@ -230,6 +445,8 @@ components:
               price:
                 type: number
                 format: float
+              available:
+                type: boolean
     Notification:
       type: object
       properties:
