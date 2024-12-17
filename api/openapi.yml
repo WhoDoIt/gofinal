@@ -1,0 +1,249 @@
+openapi: 3.0.0
+info:
+  title: Hotel Booking System API
+  description: API для системы бронирования отелей, включающая сервисы бронирования, отелей, уведомлений и оплаты.
+  version: 1.0.0
+servers:
+  - url: https://api.hotelbooking.com/v1
+    description: Основной API сервер
+
+paths:
+  /bookings:
+    post:
+      summary: Создание нового бронирования
+      description: Этот эндпоинт используется для создания нового бронирования отеля.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: string
+                  description: Идентификатор клиента, который делает бронирование.
+                hotel_id:
+                  type: string
+                  description: Идентификатор отеля, в котором будет сделано бронирование.
+                check_in_date:
+                  type: string
+                  format: date
+                  description: Дата заезда.
+                check_out_date:
+                  type: string
+                  format: date
+                  description: Дата выезда.
+                payment_method:
+                  type: string
+                  description: Способ оплаты.
+              required:
+                - client_id
+                - hotel_id
+                - check_in_date
+                - check_out_date
+      responses:
+        '201':
+          description: Бронирование успешно создано.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking_id:
+                    type: string
+                    description: Идентификатор созданного бронирования.
+        '400':
+          description: Неверные данные для бронирования.
+        '500':
+          description: Внутренняя ошибка сервера.
+
+  /hotels:
+    get:
+      summary: Получение информации о всех отелях
+      description: Этот эндпоинт позволяет получить список всех отелей с их данными (например, номера, цены).
+      responses:
+        '200':
+          description: Список отелей успешно получен.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    hotel_id:
+                      type: string
+                      description: Идентификатор отеля.
+                    name:
+                      type: string
+                      description: Название отеля.
+                    location:
+                      type: string
+                      description: Местоположение отеля.
+                    rooms:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          room_id:
+                            type: string
+                          type:
+                            type: string
+                          price:
+                            type: number
+                            format: float
+        '500':
+          description: Внутренняя ошибка сервера.
+
+  /notifications:
+    post:
+      summary: Отправка уведомлений
+      description: Этот эндпоинт используется для отправки уведомлений клиентам и отельерам о статусе бронирования.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                recipient_id:
+                  type: string
+                  description: Идентификатор получателя уведомления.
+                message:
+                  type: string
+                  description: Текст уведомления.
+              required:
+                - recipient_id
+                - message
+                - type
+      responses:
+        '200':
+          description: Уведомление успешно отправлено.
+        '400':
+          description: Ошибка в данных уведомления.
+        '500':
+          description: Внутренняя ошибка сервера.
+
+  /payment:
+    post:
+      summary: Создание заявки на оплату
+      description: Этот эндпоинт используется для создания заявки на оплату бронирования отеля.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                booking_id:
+                  type: string
+                  description: Идентификатор бронирования, для которого требуется оплата.
+                amount:
+                  type: number
+                  format: float
+                  description: Сумма оплаты.
+                payment_method:
+                  type: string
+                  description: Способ оплаты.
+              required:
+                - booking_id
+                - amount
+                - payment_method
+      responses:
+        '200':
+          description: Заявка на оплату успешно создана.
+        '400':
+          description: Ошибка в данных оплаты.
+        '500':
+          description: Внутренняя ошибка сервера.
+
+  /webhooks/payment:
+    post:
+      summary: Вебхук для уведомления о статусе оплаты
+      description: Этот эндпоинт используется для получения уведомлений о статусе оплаты бронирования.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                booking_id:
+                  type: string
+                  description: Идентификатор бронирования, оплата которого была проведена.
+                status:
+                  type: string
+                  enum: [success, failure]
+                  description: Статус оплаты (успех или неудача).
+                transaction_id:
+                  type: string
+                  description: Идентификатор транзакции.
+              required:
+                - booking_id
+                - status
+      responses:
+        '200':
+          description: Статус оплаты успешно обновлен.
+        '400':
+          description: Ошибка в данных статуса оплаты.
+        '500':
+          description: Внутренняя ошибка сервера.
+
+components:
+  schemas:
+    Booking:
+      type: object
+      properties:
+        booking_id:
+          type: string
+        client_id:
+          type: string
+        hotel_id:
+          type: string
+        check_in_date:
+          type: string
+          format: date
+        check_out_date:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+    Hotel:
+      type: object
+      properties:
+        hotel_id:
+          type: string
+        name:
+          type: string
+        location:
+          type: string
+        rooms:
+          type: array
+          items:
+            type: object
+            properties:
+              room_id:
+                type: string
+              type:
+                type: string
+              price:
+                type: number
+                format: float
+    Notification:
+      type: object
+      properties:
+        recipient_id:
+          type: string
+        message:
+          type: string
+    Payment:
+      type: object
+      properties:
+        booking_id:
+          type: string
+        amount:
+          type: number
+          format: float
+        payment_method:
+          type: string
