@@ -1,0 +1,89 @@
+services:
+  hotel_db:
+    image: postgres:13.3
+    env_file:
+      - .env
+    container_name: ${HOTELSVC_DB_IP}
+    environment:
+      POSTGRES_USER: ${HOTELSVC_DB_LOGIN}
+      POSTGRES_PASSWORD: ${HOTELSVC_DB_PASSWORD}
+      POSTGRES_DB: ${HOTELSVC_DB_DATABASE}
+      PGPORT: ${HOTELSVC_DB_PORT}
+    ports:
+      - "5433:${HOTELSVC_DB_PORT}"
+    volumes:
+    - ./db/1_hotel_up.sql:/docker-entrypoint-initdb.d/1_init_up.sql
+    - ./db/1_hotel_sample.sql:/docker-entrypoint-initdb.d/999_init_sample.sql
+    - hotel_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${HOTELSVC_DB_LOGIN} -d ${HOTELSVC_DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - aio
+  
+  hotel_svc:
+    build:
+      context: ./hotel_service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8080:${HOTELSVC_PORT}"
+    volumes:
+      - .env:/usr/src/app/.env
+    depends_on:
+      hotel_db:
+        condition: service_healthy
+    networks:
+      - aio
+
+  booking_db:
+    image: postgres:13.3
+    env_file:
+      - .env
+    container_name: ${BOOKINGSVC_DB_IP}
+    environment:
+      POSTGRES_USER: ${BOOKINGSVC_DB_LOGIN}
+      POSTGRES_PASSWORD: ${BOOKINGSVC_DB_PASSWORD}
+      POSTGRES_DB: ${BOOKINGSVC_DB_DATABASE}
+      PGPORT: ${BOOKINGSVC_DB_PORT}
+    ports:
+      - "5434:${BOOKINGSVC_DB_PORT}"
+    volumes:
+    - ./db/1_booking_up.sql:/docker-entrypoint-initdb.d/1_init_up.sql
+    - ./db/1_booking_sample.sql:/docker-entrypoint-initdb.d/999_init_sample.sql
+    - booking_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BOOKINGSVC_DB_LOGIN} -d ${BOOKINGSVC_DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - aio
+  booking_svc:
+    build:
+      context: ./booking_service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8081:${BOOKINGSVC_PORT}"
+    volumes:
+      - .env:/usr/src/app/.env
+    depends_on:
+      hotel_db:
+        condition: service_healthy
+    networks:
+      - aio
+
+volumes:
+  hotel_db_data:
+  booking_db_data:
+
+networks:
+  aio:
+    driver: bridge

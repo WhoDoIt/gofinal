@@ -1,0 +1,24 @@
+syntax = "proto3";
+package hotel;
+
+import "google/protobuf/wrappers.proto";
+
+option go_package = "./protos";
+
+message SingleRoom {
+    int32 room_id = 1;
+    string type = 2;
+    float price = 3;
+}
+
+message Rooms {
+    repeated SingleRoom rooms = 1;
+}
+
+service HotelService {
+    rpc IsValidPersonID (google.protobuf.Int32Value) returns (google.protobuf.BoolValue);
+    rpc IsValidHotelID (google.protobuf.Int32Value) returns (google.protobuf.BoolValue);
+    rpc IsValidRoomID (google.protobuf.Int32Value) returns (google.protobuf.BoolValue);
+    rpc GetAllRoomsInHotel (google.protobuf.Int32Value) returns (Rooms);
+    rpc GetRoomPrice (google.protobuf.Int32Value) returns (google.protobuf.FloatValue);
+}

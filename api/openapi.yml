@@ -4,8 +4,7 @@ info:
   description: API для системы бронирования отелей, включающая сервисы бронирования, отелей, уведомлений и оплаты.
   version: 1.0.0
 servers:
-  - url: localhost:/v1
-    description: Основной API сервер
+  - url: http://localhost:8080
 
 paths:
   /bookings:
@@ -20,13 +19,13 @@ paths:
               type: object
               properties:
                 client_id:
-                  type: string
+                  type: integer
                   description: Идентификатор клиента, который делает бронирование.
                 hotel_id:
-                  type: string
+                  type: integer
                   description: Идентификатор отеля, в котором будет сделано бронирование.
                 room_id:
-                  type: string
+                  type: integer
                   description: Идентификатор комнаты, в которой будет сделано бронирование.
                 check_in_date:
                   type: string
@@ -63,7 +62,7 @@ paths:
         '500':
           description: Внутренняя ошибка сервера.
   
-  /bookings/{booking_id}:
+  /bookings/get?id={booking_id}:
     get:
       summary: Получить информацию о брони по booking_id
       responses:
@@ -78,7 +77,7 @@ paths:
         '500':
           description: Внутренняя ошибка сервера.
   
-  /bookings/hotel/{hotel_id}:
+  /bookings/hotel/get?id={hotel_id}:
     get:
       summary: Получить информацию о всех бронях в отеле
       responses:
@@ -95,7 +94,7 @@ paths:
         '500':
           description: Внутренняя ошибка сервера.
 
-  /bookings/client/{client_id}:
+  /bookings/client/get?id={client_id}:
     get:
       summary: Получить информацию о всех бронях клиента
       responses:
@@ -111,6 +110,24 @@ paths:
           description: Неверный client_id
         '500':
           description: Внутренняя ошибка сервера.
+  
+  /bookings/hotel/available?id={hotel_id}:
+    get:
+      summary: Get all available bookings in the hotel
+      responses:
+        '200':
+          description: List of available bookings in the hotel
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+        '400':
+          description: Неверный hotel_id
+        '500':
+          description: Внутренняя ошибка сервера.
+              
 
   /hotels:
     get:
@@ -138,7 +155,7 @@ paths:
               type: object
               properties:
                 owner_id:
-                  type: string
+                  type: integer
                   description: Идентификатор владельца, который оформляет отель.
                 name:
                   type: string
@@ -177,7 +194,7 @@ paths:
         '500':
           description: Внутренняя ошибка сервера.
 
-  /hotels/{hotel_id}:
+  /hotels/get?id={hotel_id}:
     get:
       summary: "Получить информацию об отеле по hotel_id"
       responses:
@@ -192,7 +209,7 @@ paths:
         '500':
           description: Внутренняя ошибка сервера.
   
-  /hotels/owner/{owner_id}:
+  /hotels/owner/get?id={owner_id}:
     get:
       summary: "Получить информацию о всех отелях у владельца по owner_id"
       responses:
@@ -219,14 +236,11 @@ paths:
             schema:
               type: object
               properties:
-                owner_id:
-                  type: string
                 hotel_id:
-                  type: string
+                  type: integer
                 room_id:
-                  type: string
+                  type: integer
               required:
-                - owner_id
                 - hotel_id
                 - room_id
       responses:
@@ -247,25 +261,20 @@ paths:
             schema:
               type: object
               properties:
-                owner_id:
-                  type: string
-                hotel_id:
-                  type: string
                 room_id:
+                  type: integer
+                hotel_id:
+                  type: integer
+                type:
                   type: string
-                room_description:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                    price:
-                      type: number
-                      format: float
+                price:
+                  type: number
+                  format: float
               required:
-                - owner_id
                 - hotel_id
                 - room_id
-                - room_description
+                - type
+                - price
       responses:
         '200':
           description: Комната успешно обновлена
@@ -284,25 +293,28 @@ paths:
             schema:
               type: object
               properties:
-                owner_id:
-                  type: string
                 hotel_id:
+                  type: integer
+                type:
                   type: string
-                room_description:
-                  type: object
-                  properties:
-                    type:
-                      type: string
-                    price:
-                      type: number
-                      format: float
+                price:
+                  type: number
+                  format: float
               required:
-                - owner_id
                 - hotel_id
-                - room_description
+                - type
+                - price
       responses:
         '201':
           description: Комната успешно создана
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  room_id:
+                    type: string
+                    description: Идентификатор.
         '400':
           description: Неверные данные.
         '500':
@@ -349,7 +361,7 @@ paths:
               type: object
               properties:
                 booking_id:
-                  type: string
+                  type: integer
                   description: Идентификатор бронирования, для которого требуется оплата.
                 amount:
                   type: number
@@ -382,7 +394,7 @@ paths:
               type: object
               properties:
                 booking_id:
-                  type: string
+                  type: integer
                   description: Идентификатор бронирования, оплата которого была проведена.
                 status:
                   type: string
@@ -408,11 +420,13 @@ components:
       type: object
       properties:
         booking_id:
-          type: string
+          type: integer
         client_id:
-          type: string
+          type: integer
         hotel_id:
-          type: string
+          type: integer
+        room_id:
+          type: integer
         check_in_date:
           type: string
           format: date
@@ -426,9 +440,9 @@ components:
       type: object
       properties:
         owner_id:
-          type: string
+          type: integer
         hotel_id:
-          type: string
+          type: integer
         name:
           type: string
         location:
@@ -445,20 +459,18 @@ components:
               price:
                 type: number
                 format: float
-              available:
-                type: boolean
     Notification:
       type: object
       properties:
         recipient_id:
-          type: string
+          type: integer
         message:
           type: string
     Payment:
       type: object
       properties:
         booking_id:
-          type: string
+          type: integer
         amount:
           type: number
           format: float
