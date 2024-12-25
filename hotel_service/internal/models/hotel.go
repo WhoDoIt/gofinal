@@ -10,7 +10,7 @@ type Hotel struct {
 	HotelID  int     `json:"hotel_id"`
 	OwnerID  int     `json:"owner_id"`
 	Name     string  `json:"name"`
-	Location *string `json:"location"`
+	Location string  `json:"location"`
 	Rooms    []*Room `json:"rooms"`
 }
 
@@ -18,7 +18,7 @@ type HotelModel struct {
 	DB *pgxpool.Pool
 }
 
-func (m *HotelModel) Insert(ctx context.Context, owner_id int, name string, location *string) (int, error) {
+func (m *HotelModel) Insert(ctx context.Context, owner_id int, name string, location string) (int, error) {
 	stmt := `INSERT INTO hotels(owner_id, name, location)
 						 VALUES($1, $2, $3) RETURNING hotel_id`
 	var id int

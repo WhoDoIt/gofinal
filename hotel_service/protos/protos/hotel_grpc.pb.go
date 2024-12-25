@@ -24,7 +24,9 @@ const (
 	HotelService_IsValidHotelID_FullMethodName     = "/hotel.HotelService/IsValidHotelID"
 	HotelService_IsValidRoomID_FullMethodName      = "/hotel.HotelService/IsValidRoomID"
 	HotelService_GetAllRoomsInHotel_FullMethodName = "/hotel.HotelService/GetAllRoomsInHotel"
-	HotelService_GetRoomPrice_FullMethodName       = "/hotel.HotelService/GetRoomPrice"
+	HotelService_GetRoom_FullMethodName            = "/hotel.HotelService/GetRoom"
+	HotelService_GetHotel_FullMethodName           = "/hotel.HotelService/GetHotel"
+	HotelService_GetContact_FullMethodName         = "/hotel.HotelService/GetContact"
 )
 
 // HotelServiceClient is the client API for HotelService service.
@@ -35,7 +37,9 @@ type HotelServiceClient interface {
 	IsValidHotelID(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*wrappers.BoolValue, error)
 	IsValidRoomID(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*wrappers.BoolValue, error)
 	GetAllRoomsInHotel(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*Rooms, error)
-	GetRoomPrice(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*wrappers.FloatValue, error)
+	GetRoom(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*SingleRoom, error)
+	GetHotel(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*Hotel, error)
+	GetContact(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*Contact, error)
 }
 
 type hotelServiceClient struct {
@@ -86,10 +90,30 @@ func (c *hotelServiceClient) GetAllRoomsInHotel(ctx context.Context, in *wrapper
 	return out, nil
 }
 
-func (c *hotelServiceClient) GetRoomPrice(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*wrappers.FloatValue, error) {
+func (c *hotelServiceClient) GetRoom(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*SingleRoom, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(wrappers.FloatValue)
-	err := c.cc.Invoke(ctx, HotelService_GetRoomPrice_FullMethodName, in, out, cOpts...)
+	out := new(SingleRoom)
+	err := c.cc.Invoke(ctx, HotelService_GetRoom_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hotelServiceClient) GetHotel(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*Hotel, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Hotel)
+	err := c.cc.Invoke(ctx, HotelService_GetHotel_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *hotelServiceClient) GetContact(ctx context.Context, in *wrappers.Int32Value, opts ...grpc.CallOption) (*Contact, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Contact)
+	err := c.cc.Invoke(ctx, HotelService_GetContact_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +128,9 @@ type HotelServiceServer interface {
 	IsValidHotelID(context.Context, *wrappers.Int32Value) (*wrappers.BoolValue, error)
 	IsValidRoomID(context.Context, *wrappers.Int32Value) (*wrappers.BoolValue, error)
 	GetAllRoomsInHotel(context.Context, *wrappers.Int32Value) (*Rooms, error)
-	GetRoomPrice(context.Context, *wrappers.Int32Value) (*wrappers.FloatValue, error)
+	GetRoom(context.Context, *wrappers.Int32Value) (*SingleRoom, error)
+	GetHotel(context.Context, *wrappers.Int32Value) (*Hotel, error)
+	GetContact(context.Context, *wrappers.Int32Value) (*Contact, error)
 	mustEmbedUnimplementedHotelServiceServer()
 }
 
@@ -127,8 +153,14 @@ func (UnimplementedHotelServiceServer) IsValidRoomID(context.Context, *wrappers.
 func (UnimplementedHotelServiceServer) GetAllRoomsInHotel(context.Context, *wrappers.Int32Value) (*Rooms, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllRoomsInHotel not implemented")
 }
-func (UnimplementedHotelServiceServer) GetRoomPrice(context.Context, *wrappers.Int32Value) (*wrappers.FloatValue, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRoomPrice not implemented")
+func (UnimplementedHotelServiceServer) GetRoom(context.Context, *wrappers.Int32Value) (*SingleRoom, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRoom not implemented")
+}
+func (UnimplementedHotelServiceServer) GetHotel(context.Context, *wrappers.Int32Value) (*Hotel, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHotel not implemented")
+}
+func (UnimplementedHotelServiceServer) GetContact(context.Context, *wrappers.Int32Value) (*Contact, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetContact not implemented")
 }
 func (UnimplementedHotelServiceServer) mustEmbedUnimplementedHotelServiceServer() {}
 func (UnimplementedHotelServiceServer) testEmbeddedByValue()                      {}
@@ -223,20 +255,56 @@ func _HotelService_GetAllRoomsInHotel_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _HotelService_GetRoomPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _HotelService_GetRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(wrappers.Int32Value)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(HotelServiceServer).GetRoomPrice(ctx, in)
+		return srv.(HotelServiceServer).GetRoom(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: HotelService_GetRoomPrice_FullMethodName,
+		FullMethod: HotelService_GetRoom_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HotelServiceServer).GetRoomPrice(ctx, req.(*wrappers.Int32Value))
+		return srv.(HotelServiceServer).GetRoom(ctx, req.(*wrappers.Int32Value))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HotelService_GetHotel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrappers.Int32Value)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HotelServiceServer).GetHotel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HotelService_GetHotel_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HotelServiceServer).GetHotel(ctx, req.(*wrappers.Int32Value))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HotelService_GetContact_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(wrappers.Int32Value)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HotelServiceServer).GetContact(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: HotelService_GetContact_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HotelServiceServer).GetContact(ctx, req.(*wrappers.Int32Value))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -265,8 +333,16 @@ var HotelService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _HotelService_GetAllRoomsInHotel_Handler,
 		},
 		{
-			MethodName: "GetRoomPrice",
-			Handler:    _HotelService_GetRoomPrice_Handler,
+			MethodName: "GetRoom",
+			Handler:    _HotelService_GetRoom_Handler,
+		},
+		{
+			MethodName: "GetHotel",
+			Handler:    _HotelService_GetHotel_Handler,
+		},
+		{
+			MethodName: "GetContact",
+			Handler:    _HotelService_GetContact_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

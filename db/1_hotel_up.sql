@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
 	user_id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY NOT NULL,
-	telegram varchar(100),
-	email varchar(100)
+	telegram varchar(100) NOT NULL,
+	email varchar(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS hotels

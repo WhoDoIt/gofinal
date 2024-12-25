@@ -47,10 +47,38 @@ func (s *Server) GetAllRoomsInHotel(ctx context.Context, id *wrappers.Int32Value
 	}
 	return &rooms, nil
 }
-func (s *Server) GetRoomPrice(ctx context.Context, id *wrappers.Int32Value) (*wrappers.FloatValue, error) {
+
+func (s *Server) GetRoom(ctx context.Context, id *wrappers.Int32Value) (*protos.SingleRoom, error) {
 	room, err := s.RoomModel.GetById(ctx, int(id.GetValue()))
 	if err != nil {
 		return nil, err
 	}
-	return wrapperspb.Float(room.Price), nil
+	return &protos.SingleRoom{
+		RoomId: int32(room.RoomID),
+		Type:   room.Type,
+		Price:  room.Price,
+	}, nil
+}
+func (s *Server) GetHotel(ctx context.Context, id *wrappers.Int32Value) (*protos.Hotel, error) {
+	hotel, err := s.HotelModel.Get(ctx, int(id.GetValue()))
+	if err != nil {
+		return nil, err
+	}
+	return &protos.Hotel{
+		HotelId:  int32(hotel.HotelID),
+		OwnerId:  int32(hotel.OwnerID),
+		Name:     hotel.Name,
+		Location: hotel.Location,
+	}, nil
+}
+func (s *Server) GetContact(ctx context.Context, id *wrappers.Int32Value) (*protos.Contact, error) {
+	user, err := s.UserModel.Get(ctx, int(id.GetValue()))
+	if err != nil {
+		return nil, err
+	}
+	return &protos.Contact{
+		UserId:   int32(user.UserID),
+		Telegram: user.Telegram,
+		Email:    user.Email,
+	}, nil
 }

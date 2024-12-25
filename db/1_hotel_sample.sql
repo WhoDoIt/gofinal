@@ -1,7 +1,7 @@
-INSERT INTO users(telegram, email) VALUES('@slopetrick', '');
+INSERT INTO users(telegram, email) VALUES('411984714', '');
 INSERT INTO users(telegram, email) VALUES('', 'xd@gmail.com');
-INSERT INTO users(telegram, email) VALUES('@slopetrick', '');
-INSERT INTO users(telegram, email) VALUES('@slopetrick', '');
+INSERT INTO users(telegram, email) VALUES('411984714', '');
+INSERT INTO users(telegram, email) VALUES('411984714', '');
 
 INSERT INTO hotels(owner_id, name, location) VALUES (1, 'Sirius', 'Sochi');
 INSERT INTO hotels(owner_id, name, location) VALUES (2, 'Motel', 'MiddleOfNowhere');

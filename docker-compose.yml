@@ -1,4 +1,44 @@
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - aio
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - aio
+
+  notification_svc:
+    build:
+      context: ./notification_service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "8082:${NOTIFICATIONSVC_PORT}"
+    volumes:
+      - .env:/usr/src/app/.env
+    depends_on:
+      kafka:
+        condition: service_started
+    networks:
+      - aio
+
   hotel_db:
     image: postgres:13.3
     env_file:
@@ -35,6 +75,8 @@ services:
     volumes:
       - .env:/usr/src/app/.env
     depends_on:
+      kafka:
+        condition: service_started
       hotel_db:
         condition: service_healthy
     networks:
@@ -75,7 +117,9 @@ services:
     volumes:
       - .env:/usr/src/app/.env
     depends_on:
-      hotel_db:
+      hotel_svc:
+        condition: service_started
+      booking_db:
         condition: service_healthy
     networks:
       - aio

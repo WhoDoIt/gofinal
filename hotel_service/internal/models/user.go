@@ -7,9 +7,9 @@ import (
 )
 
 type User struct {
-	UserID   int     `json:"user_id"`
-	Telegram *string `json:"telegram"`
-	Email    *string `json:"email"`
+	UserID   int    `json:"user_id"`
+	Telegram string `json:"telegram"`
+	Email    string `json:"email"`
 }
 
 type UserModel struct {

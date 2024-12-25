@@ -4,5 +4,9 @@ gen:
 
 compose:
 	docker compose up --build;docker compose down -v
+composegood:
+	docker compose up; docker compose down;
+
+run: gen composegood
 
 crun: gen compose

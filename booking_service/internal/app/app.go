@@ -5,15 +5,17 @@ import (
 	"log"
 	"net/http"
 
-	grpcclient "github.com/WhoDoIt/gofinal/booking_service/internal/grpc_client"
+	"github.com/WhoDoIt/gofinal/booking_service/internal/kafka"
 	"github.com/WhoDoIt/gofinal/booking_service/internal/models"
+	"github.com/WhoDoIt/gofinal/booking_service/protos/protos"
 )
 
 type Application struct {
 	ErrorLog     *log.Logger
 	InfoLog      *log.Logger
 	BookingModel *models.BookingModel
-	GRPCClient   *grpcclient.GRPCClient
+	GRPCClient   protos.HotelServiceClient
+	KafkaWriter  *kafka.KafkaWriter
 }
 
 func (app *Application) Start(ctx context.Context) error {
@@ -23,7 +25,7 @@ func (app *Application) Start(ctx context.Context) error {
 func (app *Application) Routes() http.Handler {
 	mux := http.NewServeMux()
 
-	// mux.HandleFunc("POST /bookings", app.Bo)
+	mux.HandleFunc("POST /bookings", app.BookingCreate)
 	mux.HandleFunc("GET /bookings/get", app.BookingGet)
 	mux.HandleFunc("GET /bookings/hotel/get", app.BookingGetInHotel)
 	mux.HandleFunc("GET /bookings/client/get", app.BookingGetByClient)

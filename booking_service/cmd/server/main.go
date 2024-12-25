@@ -9,9 +9,12 @@ import (
 	"time"
 
 	"github.com/WhoDoIt/gofinal/booking_service/internal/app"
-	grpcclient "github.com/WhoDoIt/gofinal/booking_service/internal/grpc_client"
+	"github.com/WhoDoIt/gofinal/booking_service/internal/kafka"
 	"github.com/WhoDoIt/gofinal/booking_service/internal/models"
+	"github.com/WhoDoIt/gofinal/booking_service/protos/protos"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -23,6 +26,8 @@ func main() {
 
 	svc_port := os.Getenv("BOOKINGSVC_PORT")
 	grpc_port := os.Getenv("GRPC_PORT")
+	kafka_port := os.Getenv("KAFKA_PORT")
+	kafka_topic := os.Getenv("KAFKA_TOPIC")
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", db_login, db_password, db_ip, db_port, db_database)
 
@@ -43,7 +48,8 @@ func main() {
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-	client, err := grpcclient.NewClient("hotel_svc:" + grpc_port)
+
+	grpc_client, err := grpc.NewClient(":"+grpc_port, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		errorLog.Fatalln(err)
 		return
@@ -52,7 +58,8 @@ func main() {
 		InfoLog:      infoLog,
 		ErrorLog:     errorLog,
 		BookingModel: &models.BookingModel{DB: conn},
-		GRPCClient:   client,
+		GRPCClient:   protos.NewHotelServiceClient(grpc_client),
+		KafkaWriter:  kafka.NewKafkaWriter("kafka:"+kafka_port, kafka_topic),
 	}
 
 	app.InfoLog.Printf("HTTP server starting listening on :%s\n", svc_port)
