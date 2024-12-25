@@ -11,8 +11,8 @@ import (
 type Application struct {
 	ErrorLog   *log.Logger
 	InfoLog    *log.Logger
-	HotelModel *models.HotelModel
-	RoomModel  *models.RoomModel
+	HotelModel models.HotelModelInterface
+	RoomModel  models.RoomModelInterface
 }
 
 func (app *Application) Start(ctx context.Context) error {

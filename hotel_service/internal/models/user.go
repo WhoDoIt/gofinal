@@ -12,6 +12,10 @@ type User struct {
 	Email    string `json:"email"`
 }
 
+type UserModelInterface interface {
+	Get(ctx context.Context, user_id int) (*User, error)
+}
+
 type UserModel struct {
 	DB *pgxpool.Pool
 }

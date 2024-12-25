@@ -14,6 +14,14 @@ type Room struct {
 	Price   float32 `json:"price"`
 }
 
+type RoomModelInterface interface {
+	Insert(ctx context.Context, hotel_id int, room_type string, room_price float32) (int, error)
+	GetById(ctx context.Context, room_id int) (*Room, error)
+	GetAllInHotel(ctx context.Context, hotel_id int) ([]*Room, error)
+	UpdateRoom(ctx context.Context, hotel_id int, room_id int, room_type string, room_price float32) error
+	DeleteRoom(ctx context.Context, hotel_id int, room_id int) error
+}
+
 type RoomModel struct {
 	DB *pgxpool.Pool
 }

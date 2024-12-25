@@ -5,6 +5,7 @@ go 1.22.4
 require (
 	github.com/golang/protobuf v1.5.4
 	github.com/jackc/pgx/v5 v5.7.1
+	go.uber.org/mock v0.5.0
 	google.golang.org/grpc v1.69.2
 	google.golang.org/protobuf v1.36.1
 )

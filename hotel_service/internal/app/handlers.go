@@ -32,7 +32,7 @@ func (app *Application) hotelCreate(w http.ResponseWriter, r *http.Request) {
 
 	hotel.HotelID, err = app.HotelModel.Insert(r.Context(), hotel.OwnerID, hotel.Name, hotel.Location)
 	if err != nil {
-		app.badRequest(w, err)
+		app.internalError(w, err)
 		return
 	}
 	response := &HotelCreateResponse{}
@@ -50,7 +50,7 @@ func (app *Application) hotelGet(w http.ResponseWriter, r *http.Request) {
 
 	model, err := app.HotelModel.Get(r.Context(), id)
 	if err != nil {
-		app.badRequest(w, err)
+		app.internalError(w, err)
 		return
 	}
 

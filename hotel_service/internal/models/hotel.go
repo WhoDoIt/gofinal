@@ -14,6 +14,13 @@ type Hotel struct {
 	Rooms    []*Room `json:"rooms"`
 }
 
+type HotelModelInterface interface {
+	Insert(ctx context.Context, owner_id int, name string, location string) (int, error)
+	Get(ctx context.Context, hotel_id int) (*Hotel, error)
+	GetByOwner(ctx context.Context, owner_id int) ([]*Hotel, error)
+	GetAll(ctx context.Context) ([]*Hotel, error)
+}
+
 type HotelModel struct {
 	DB *pgxpool.Pool
 }
