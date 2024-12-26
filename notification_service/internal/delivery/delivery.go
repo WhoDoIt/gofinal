@@ -2,13 +2,14 @@ package delivery
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/go-telegram/bot"
 )
 
 type Deliverer struct {
-	Bot *bot.Bot
+	Bot     *bot.Bot
+	InfoLog *log.Logger
 }
 
 func (d *Deliverer) SendMessage(ctx context.Context, chat_id int64, message string) {
@@ -17,7 +18,7 @@ func (d *Deliverer) SendMessage(ctx context.Context, chat_id int64, message stri
 		Text:   message,
 	})
 	if err != nil {
-		fmt.Println(chat_id)
-		fmt.Println(err)
+		d.InfoLog.Println(chat_id)
+		d.InfoLog.Println(err)
 	}
 }

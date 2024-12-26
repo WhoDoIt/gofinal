@@ -35,6 +35,15 @@ func (app *Application) hotelCreate(w http.ResponseWriter, r *http.Request) {
 		app.internalError(w, err)
 		return
 	}
+
+	for _, room := range hotel.Rooms {
+		_, err = app.RoomModel.Insert(r.Context(), hotel.HotelID, room.Type, room.Price)
+		if err != nil {
+			app.internalError(w, err)
+			return
+		}
+	}
+
 	response := &HotelCreateResponse{}
 	response.HotelID = hotel.HotelID
 
@@ -66,7 +75,7 @@ func (app *Application) hotelGetByOwner(w http.ResponseWriter, r *http.Request) 
 
 	model, err := app.HotelModel.GetByOwner(r.Context(), id)
 	if err != nil {
-		app.badRequest(w, err)
+		app.internalError(w, err)
 		return
 	}
 
@@ -86,7 +95,7 @@ func (app *Application) roomCreate(w http.ResponseWriter, r *http.Request) {
 
 	roomID, err := app.RoomModel.Insert(r.Context(), room.HotelID, room.Type, room.Price)
 	if err != nil {
-		app.badRequest(w, err)
+		app.internalError(w, err)
 		return
 	}
 
@@ -103,7 +112,7 @@ func (app *Application) roomPut(w http.ResponseWriter, r *http.Request) {
 
 	err := app.RoomModel.UpdateRoom(r.Context(), room.HotelID, room.RoomID, room.Type, room.Price)
 	if err != nil {
-		app.badRequest(w, err)
+		app.internalError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -118,7 +127,7 @@ func (app *Application) roomDelete(w http.ResponseWriter, r *http.Request) {
 
 	err := app.RoomModel.DeleteRoom(r.Context(), room.HotelID, room.RoomID)
 	if err != nil {
-		app.badRequest(w, err)
+		app.internalError(w, err)
 		return
 	}
 	w.WriteHeader(http.StatusOK)

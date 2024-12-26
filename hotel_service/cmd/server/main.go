@@ -11,6 +11,7 @@ import (
 
 	"github.com/WhoDoIt/gofinal/hotel_service/internal/app"
 	"github.com/WhoDoIt/gofinal/hotel_service/internal/grpc_server"
+	"github.com/WhoDoIt/gofinal/hotel_service/internal/metrics"
 	"github.com/WhoDoIt/gofinal/hotel_service/internal/models"
 	"github.com/WhoDoIt/gofinal/hotel_service/protos/protos"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -52,6 +53,7 @@ func main() {
 		ErrorLog:   errorLog,
 		HotelModel: &models.HotelModel{DB: conn},
 		RoomModel:  &models.RoomModel{DB: conn},
+		Metrics:    metrics.NewMetrics(),
 	}
 
 	go func() {

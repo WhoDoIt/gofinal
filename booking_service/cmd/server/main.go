@@ -6,10 +6,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/WhoDoIt/gofinal/booking_service/internal/app"
 	"github.com/WhoDoIt/gofinal/booking_service/internal/kafka"
+	"github.com/WhoDoIt/gofinal/booking_service/internal/metrics"
 	"github.com/WhoDoIt/gofinal/booking_service/internal/models"
 	"github.com/WhoDoIt/gofinal/booking_service/protos/protos"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,6 +24,9 @@ func main() {
 	db_port := os.Getenv("BOOKINGSVC_DB_PORT")
 	db_database := os.Getenv("BOOKINGSVC_DB_DATABASE")
 
+	payment_url := os.Getenv("PAYMENT_URI")
+	payment_webhook := os.Getenv("PAYMENT_WEBHOOK")
+
 	svc_port := os.Getenv("BOOKINGSVC_PORT")
 	grpc_port := os.Getenv("GRPC_PORT")
 	kafka_port := os.Getenv("KAFKA_PORT")
@@ -31,17 +34,14 @@ func main() {
 
 	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", db_login, db_password, db_ip, db_port, db_database)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
-	defer cancel()
-
-	conn, err := pgxpool.New(ctx, dsn)
+	conn, err := pgxpool.New(context.Background(), dsn)
 
 	if err != nil {
 		fmt.Fprint(os.Stdout, err)
 		return
 	}
 
-	if err = conn.Ping(ctx); err != nil {
+	if err = conn.Ping(context.Background()); err != nil {
 		fmt.Fprint(os.Stdout, err)
 		return
 	}
@@ -49,17 +49,20 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	grpc_client, err := grpc.NewClient(":"+grpc_port, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	grpc_client, err := grpc.NewClient("hotel_svc:"+grpc_port, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		errorLog.Fatalln(err)
 		return
 	}
 	app := &app.Application{
-		InfoLog:      infoLog,
-		ErrorLog:     errorLog,
-		BookingModel: &models.BookingModel{DB: conn},
-		GRPCClient:   protos.NewHotelServiceClient(grpc_client),
-		KafkaWriter:  kafka.NewKafkaWriter("kafka:"+kafka_port, kafka_topic),
+		InfoLog:        infoLog,
+		ErrorLog:       errorLog,
+		BookingModel:   &models.BookingModel{DB: conn},
+		GRPCClient:     protos.NewHotelServiceClient(grpc_client),
+		KafkaWriter:    kafka.NewKafkaWriter("kafka:"+kafka_port, kafka_topic),
+		Metrics:        metrics.NewMetrics(),
+		PaymentURL:     payment_url,
+		PaymentWebhook: payment_webhook,
 	}
 
 	app.InfoLog.Printf("HTTP server starting listening on :%s\n", svc_port)

@@ -226,7 +226,7 @@ paths:
         '500':
           description: Внутренняя ошибка сервера.
     
-  /hotel/room:
+  /hotels/room:
     delete:
       summary: Удалить комнату из отеля
       requestBody:

@@ -1,4 +1,14 @@
 services:
+  prometheus:
+    image: prom/prometheus:v3.0.0
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - aio
+  
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
@@ -64,6 +74,20 @@ services:
     networks:
       - aio
   
+  payment_svc:
+    container_name: payment_service
+    build:
+      context: ./payment_service
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${PAYMENT_PORT}:${PAYMENT_PORT}"
+    volumes:
+      - .env:/usr/src/app/.env
+    networks:
+      - aio
+  
   hotel_svc:
     build:
       context: ./hotel_service
@@ -106,7 +130,9 @@ services:
       start_period: 10s
     networks:
       - aio
+  
   booking_svc:
+    container_name: booking_svc
     build:
       context: ./booking_service
       dockerfile: Dockerfile

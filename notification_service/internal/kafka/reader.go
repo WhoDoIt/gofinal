@@ -2,12 +2,10 @@ package kafka
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"strconv"
 
+	"github.com/WhoDoIt/gofinal/notification_service/internal/beutify"
 	"github.com/WhoDoIt/gofinal/notification_service/internal/delivery"
-	"github.com/WhoDoIt/gofinal/notification_service/internal/models"
 	"github.com/go-telegram/bot"
 	kafkago "github.com/segmentio/kafka-go"
 )
@@ -26,7 +24,7 @@ func NewKafkaReader(broker string, topic string, handler any, infoLog *log.Logge
 	})
 	return &KafkaReader{
 		reader:    r,
-		deliverer: &delivery.Deliverer{Bot: bot},
+		deliverer: &delivery.Deliverer{Bot: bot, InfoLog: infoLog},
 		infoLog:   infoLog,
 		errorLog:  errorLog,
 	}
@@ -40,19 +38,11 @@ func (c *KafkaReader) Read(ctx context.Context) {
 				c.errorLog.Println(err)
 				continue
 			}
-			booking := &models.Booking{}
-			err = json.Unmarshal(m.Value, &booking)
+			err = beutify.PrepareMessage(ctx, c.deliverer, m.Key, m.Value)
 			if err != nil {
 				c.errorLog.Println(err)
 				continue
 			}
-
-			chat_id, err := strconv.ParseInt(string(m.Key), 10, 64)
-			if err != nil {
-				c.errorLog.Println(err)
-				continue
-			}
-			c.deliverer.SendMessage(ctx, chat_id, booking.CheckOutDate.String())
 			c.infoLog.Printf("got message: %s\n", string(m.Value))
 		}
 	}(c.reader)

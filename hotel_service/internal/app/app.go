@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/WhoDoIt/gofinal/hotel_service/internal/metrics"
 	"github.com/WhoDoIt/gofinal/hotel_service/internal/models"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type Application struct {
@@ -13,6 +15,7 @@ type Application struct {
 	InfoLog    *log.Logger
 	HotelModel models.HotelModelInterface
 	RoomModel  models.RoomModelInterface
+	Metrics    *metrics.Metrics
 }
 
 func (app *Application) Start(ctx context.Context) error {
@@ -29,5 +32,6 @@ func (app *Application) Routes() http.Handler {
 	mux.HandleFunc("POST /hotels/room", app.roomCreate)
 	mux.HandleFunc("DELETE /hotels/room", app.roomDelete)
 	mux.HandleFunc("PUT /hotels/room", app.roomPut)
-	return app.logRequest(mux)
+	mux.Handle("GET /hotels/metrics", promhttp.Handler())
+	return app.collectMetrics(app.logRequest(mux))
 }

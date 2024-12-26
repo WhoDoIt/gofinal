@@ -18,15 +18,15 @@ type Server struct {
 
 func (s *Server) IsValidPersonID(ctx context.Context, id *wrappers.Int32Value) (*wrappers.BoolValue, error) {
 	_, err := s.UserModel.Get(ctx, int(id.GetValue()))
-	return wrapperspb.Bool(err != nil), nil
+	return wrapperspb.Bool(err == nil), nil
 }
 func (s *Server) IsValidHotelID(ctx context.Context, id *wrappers.Int32Value) (*wrappers.BoolValue, error) {
 	_, err := s.HotelModel.Get(ctx, int(id.GetValue()))
-	return wrapperspb.Bool(err != nil), nil
+	return wrapperspb.Bool(err == nil), nil
 }
 func (s *Server) IsValidRoomID(ctx context.Context, id *wrappers.Int32Value) (*wrappers.BoolValue, error) {
 	_, err := s.RoomModel.GetById(ctx, int(id.GetValue()))
-	return wrapperspb.Bool(err != nil), nil
+	return wrapperspb.Bool(err == nil), nil
 }
 func (s *Server) GetAllRoomsInHotel(ctx context.Context, id *wrappers.Int32Value) (*protos.Rooms, error) {
 	hotels, err := s.HotelModel.Get(ctx, int(id.GetValue()))
